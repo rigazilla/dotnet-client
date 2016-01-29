@@ -200,12 +200,12 @@ else (WIN32)
   endif (NOT MONO_BINARY)
 
   add_custom_target(hotrodcs-bin ALL
-    COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs.proj"
-    DEPENDS hotrodcs_wrap)
+  COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs.proj"
+  DEPENDS hotrodcs_wrap)
   
   add_custom_target(hotrodcs-tests-bin ALL
-    COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs-tests.csproj"
-    DEPENDS hotrodcs-bin)
+  COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs-tests.csproj"
+  DEPENDS hotrodcs-bin)
 endif (WIN32)
 
 
