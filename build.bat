@@ -2,7 +2,12 @@ rmdir /s /q build_windows
 mkdir build_windows
 cd build_windows
 
-cmake -G %generator% %* ..
+
+set HOTRODCPP32_HOME=%checkoutDir%/cpp-client/build_win32/_CPack_Packages/WIN-i686/ZIP/infinispan-hotrod-cpp-%cppTag%-WIN-i686
+set HOTRODCPP64_HOME=%checkoutDir%/cpp-client/build_win64/_CPack_Packages/WIN-x86_64/ZIP/infinispan-hotrod-cpp-%cppTag%-WIN-x86_64
+
+
+cmake -G %generator% -DHOTRODCPP32_HOME=%HOTRODCPP32_HOME% -DHOTRODCPP64_HOME=%HOTRODCPP64_HOME% ..
 if %errorlevel% neq 0 goto fail
 
 cmake --build . --config RelWithDebInfo
