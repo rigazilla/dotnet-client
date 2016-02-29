@@ -15,7 +15,6 @@
 #include <infinispan/hotrod/RemoteCache.h>
 #include <infinispan/hotrod/RemoteCacheBase.h>
 #include <infinispan/hotrod/RemoteCacheManager.h>
-#include <infinispan/hotrod/ScopedBuffer.h>
 #include <infinispan/hotrod/ServerConfiguration.h>
 #include <infinispan/hotrod/ServerConfigurationBuilder.h>
 #include <infinispan/hotrod/SslConfiguration.h>
@@ -59,7 +58,6 @@
 %include std_except.i
 %include "infinispan/hotrod/exceptions.h"
 
-%include "infinispan/hotrod/ScopedBuffer.h"
 
 %include "infinispan/hotrod/Flag.h"
 %include "infinispan/hotrod/Version.h"
@@ -153,17 +151,16 @@ namespace hotrod {
         return b1.getSize() < b2.getSize();
     }
 
-    void noRelease(infinispan::hotrod::ScopedBuffer*) { /* nothing allocated, nothing to release */ }
 
     template<> class BasicMarshaller<ByteArray>: public infinispan::hotrod::Marshaller<ByteArray> {
-        void marshall(const ByteArray& barray, infinispan::hotrod::ScopedBuffer& sbuf) {
+        void marshall(const ByteArray& barray, std::vector<char>& sbuf) {
             if (barray.getSize() == 0) {
                 return;
             }
             sbuf.set((char *) barray.getBytes(), barray.getSize(), &infinispan::hotrod::noRelease);
         }
 
-        ByteArray* unmarshall(const infinispan::hotrod::ScopedBuffer& sbuf) {
+        ByteArray* unmarshall(const std::vector<char>& sbuf) {
             int size = sbuf.getLength();
             unsigned char *bytes = new unsigned char[size];
             memcpy(bytes, sbuf.getBytes(), size);
