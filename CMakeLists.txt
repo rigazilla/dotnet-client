@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(infinispan-hotrod-dotnet)
 
-if (NOT DEFINED HOTROD_VERSION_MAJOR) 
+if (NOT DEFINED HOTROD_VERSION_MAJOR)
   set (HOTROD_VERSION_MAJOR "7")
 endif (NOT DEFINED HOTROD_VERSION_MAJOR)
 if (NOT DEFINED HOTROD_VERSION_MINOR)
@@ -12,12 +12,21 @@ if (NOT DEFINED HOTROD_VERSION_PATCH)
   set (HOTROD_VERSION_PATCH "0")
 endif (NOT DEFINED HOTROD_VERSION_PATCH)
 if (NOT DEFINED HOTROD_VERSION_LABEL)
-  set (HOTROD_VERSION_LABEL "Alpha1")
+  set (HOTROD_VERSION_LABEL "SNAPSHOT")
 endif (NOT DEFINED HOTROD_VERSION_LABEL)
 
 if ("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
   message (FATAL_ERROR "You are calling cmake from the source directory. Please create a separate build directory and call cmake from there. See README.md for details.")
 endif ("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+
+string(REGEX MATCH "Win64" ISWIN64 "${CMAKE_GENERATOR}")
+
+if (ISWIN64)
+	set(PLATFORM "x64")
+else (ISWIN64)
+	set(PLATFORM "x86")
+endif (ISWIN64)
+
 
 # Map from version label to assembly revision.
 set (REVISION_Alpha1 "0")
@@ -25,6 +34,7 @@ set (REVISION_Beta1 "10")
 set (REVISION_CR1 "20")
 set (REVISION_CR2 "21")
 set (REVISION_Final "30")
+string(TIMESTAMP REVISION_SNAPSHOT "%y%j" UTC)
 
 # CPack version.
 set (CPACK_PACKAGE_VERSION_MAJOR "${HOTROD_VERSION_MAJOR}")
@@ -42,6 +52,14 @@ set (HOTROD_ASSEMBLY_PRODUCT_NAME "${CMAKE_PROJECT_NAME}")
 set (HOTROD_ASSEMBLY_DESCRIPTION ".NET Hot Rod Client")
 set (HOTROD_ASSEMBLY_TITLE "${HOTROD_ASSEMBLY_DESCRIPTION}")
 set (HOTROD_ASSEMBLY_COPYRIGHT "Copyright 2009 - 2014, Red Hat Inc. and/or its affiliates.")
+
+set (CPACK_PACKAGE_VENDOR "Infinispan")
+set (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set (CPACK_WIX_UPGRADE_GUID "7cc17657-80b5-417f-9209-710682f852f4") # This value should not change.
+
+message ("HotRod Version: ${HOTROD_VERSION}")
+message ("HotRod Assembly Version: ${HOTROD_ASSEMBLY_VERSION}")
 
 ### Generated and build the SWIG wrapper ###
 if (NOT DEFINED HOTRODCPP32_HOME AND DEFINED ENV{HOTRODCPP32_HOME})
@@ -86,7 +104,7 @@ if (WIN32)
     )
 else (WIN32)
 #TODO: mono
-endif (WIN32) 
+endif (WIN32)
 
 ### Compile the C# code ###
 if (NOT DEFINED NLOG_DLL AND DEFINED ENV{NLOG_DLL})
@@ -96,21 +114,28 @@ if (NOT DEFINED NLOG_DLL)
   message (FATAL_ERROR "Please define NLOG_DLL.")
 endif (NOT DEFINED NLOG_DLL)
 
+if (NOT DEFINED NUNIT_DLL AND DEFINED ENV{NUNIT_DLL})
+  set (NUNIT_DLL $ENV{NUNIT_DLL})
+endif (NOT DEFINED NUNIT_DLL AND DEFINED ENV{NUNIT_DLL})
+if (NOT DEFINED NUNIT_DLL)
+  message (FATAL_ERROR "Please define NUNIT_DLL.")
+endif (NOT DEFINED NUNIT_DLL)
+
 if (NOT DEFINED NLOG_LICENSE AND DEFINED ENV{NLOG_LICENSE})
   set (NLOG_LICENSE $ENV{NLOG_LICENSE})
+  set (NLOG_LICENSE_LOCAL "${CMAKE_CURRENT_BINARY_DIR}/NLog_License.txt")
+  file (COPY "${NLOG_LICENSE}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+  get_filename_component (NLOG_LICENSE_NAME "${NLOG_LICENSE}" NAME)
+  file (RENAME "${CMAKE_CURRENT_BINARY_DIR}/${NLOG_LICENSE_NAME}" "${NLOG_LICENSE_LOCAL}")
 endif (NOT DEFINED NLOG_LICENSE AND DEFINED ENV{NLOG_LICENSE})
 if (NOT DEFINED NLOG_LICENSE)
   message (WARNING "Please define NLOG_LICENSE if you plan to distribute the package.")
 endif (NOT DEFINED NLOG_LICENSE)
 
 file (COPY "${NLOG_DLL}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-file (COPY "${NLOG_LICENSE}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 get_filename_component (NLOG_DLL_NAME "${NLOG_DLL}" NAME)
-get_filename_component (NLOG_LICENSE_NAME "${NLOG_LICENSE}" NAME)
 set (NLOG_DLL_LOCAL "${CMAKE_CURRENT_BINARY_DIR}/NLog.dll")
-set (NLOG_LICENSE_LOCAL "${CMAKE_CURRENT_BINARY_DIR}/NLog_License.txt")
 file (RENAME "${CMAKE_CURRENT_BINARY_DIR}/${NLOG_DLL_NAME}" "${NLOG_DLL_LOCAL}")
-file (RENAME "${CMAKE_CURRENT_BINARY_DIR}/${NLOG_LICENSE_NAME}" "${NLOG_LICENSE_LOCAL}")
 
 # GAC requires strong names
 if (NOT DEFINED HOTROD_SNK AND DEFINED ENV{HOTROD_SNK})
@@ -123,8 +148,14 @@ else (DEFINED HOTROD_SNK)
   message (WARNING "No key provided. The generated DLL won't have a strong name.")
 endif (DEFINED HOTROD_SNK)
 
-configure_file(templates/hotrodcs.proj.in hotrodcs.proj)
-configure_file(templates/hotrodcs-tests.proj.in hotrodcs-tests.proj)
+string(REPLACE "/" "\\" W_S "${CMAKE_CURRENT_SOURCE_DIR}")
+string(REPLACE "/" "\\" W_CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+string(REPLACE "/" "\\" W_CMAKE_CURRENT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+string(REPLACE "/" "\\" W_SWIG32_BUILD "${SWIG32_BUILD}")
+string(REPLACE "/" "\\" W_SWIG64_BUILD "${SWIG64_BUILD}")
+
+configure_file(templates/hotrodcs.proj.in hotrodcs.csproj)
+configure_file(templates/hotrodcs-tests.proj.in hotrodcs-tests.csproj)
 configure_file(templates/AssemblyInfo.cs.in AssemblyInfo.cs)
 
 set (ARCH 32)
@@ -138,17 +169,25 @@ if (WIN32)
     message (FATAL_ERROR "Failed to find MSBuild.exe")
   endif (NOT MSBUILD_BINARY)
 
-  add_custom_target(hotrodcs-bin ALL
-    COMMAND ${MSBUILD_BINARY} "/toolsversion:4.0" "hotrodcs.proj" "/p:NoWarn=1668"
-    DEPENDS swig32 swig64)
-
-  foreach (platform "AnyCPU" "x86" "x64")
-    foreach (configuration "Release" "Debug")
-      add_custom_target(hotrodcs-tests-bin-${configuration}-${platform} ALL
-        COMMAND ${MSBUILD_BINARY} "/toolsversion:4.0" "hotrodcs-tests.proj" "/p:Platform=${platform}" "/p:Configuration=${configuration}" "/p:NoWarn=1668"
-        DEPENDS hotrodcs-bin)
-    endforeach (configuration)
-  endforeach (platform)
+  include_external_msproject(vs-hotrodcs-bin hotrodcs.csproj
+	                       TYPE AA8E36D7-FD51-4D63-A68E-227F5C4871C6
+			       GUID AA8E36D7-FD51-4D63-A68E-227F5C4871C6
+			       swig32 )
+  add_custom_target(hotrodcs-bin DEPENDS swig32 swig64 vs-hotrodcs-bin)
+  if (ISWIN64)
+	  include_external_msproject(vs-hotrodcs-test-bin hotrodcs-tests.csproj
+					TYPE 97560E9D-C7BA-40D6-9728-B39B1333EF49
+				GUID 97560E9D-C7BA-40D6-9728-B39B1333EF49
+				PLATFORM x64
+				vs-hotrodcs-bin)
+  else (ISWIN64)
+	  include_external_msproject(vs-hotrodcs-test-bin hotrodcs-tests.csproj
+		                TYPE 97560E9D-C7BA-40D6-9728-B39B1333EF49
+				GUID 97560E9D-C7BA-40D6-9728-B39B1333EF49
+				PLATFORM x86
+				vs-hotrodcs-bin)
+  endif (ISWIN64)
+  add_custom_target(hotrodcs-test-bin DEPENDS hotrodcs-bin vs-hotrodcs-test-bin)
 else (WIN32)
   find_program(XBUILD_BINARY xbuild)
   if (NOT XBUILD_BINARY)
@@ -161,11 +200,11 @@ else (WIN32)
   endif (NOT MONO_BINARY)
 
   add_custom_target(hotrodcs-bin ALL
-    COMMAND ${XBUILD_BINARY} "/tv:4.0" "hotrodcs.proj"
+    COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs.proj"
     DEPENDS hotrodcs_wrap)
   
   add_custom_target(hotrodcs-tests-bin ALL
-    COMMAND ${XBUILD_BINARY} "/tv:4.0" "hotrodcs-tests.proj"
+    COMMAND ${XBUILD_BINARY} "/tv:4.5" "hotrodcs-tests.csproj"
     DEPENDS hotrodcs-bin)
 endif (WIN32)
 
@@ -200,7 +239,7 @@ if (WIN32)
   foreach (loop_var ${CMAKE_CONFIGURATION_TYPES})
     file (TO_NATIVE_PATH "${SWIG32_BUILD}/${loop_var}" native_dir32)
     file (TO_NATIVE_PATH "${SWIG64_BUILD}/${loop_var}" native_dir64)
-	set (UT_PATH "${native_dir32};${native_dir64};${UT_PATH}")
+    set (UT_PATH "${native_dir32};${native_dir64};${UT_PATH}")
   endforeach (loop_var)
 endif (WIN32)
 
@@ -240,7 +279,7 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
     -nostdlib
     "-lib:%windir%/microsoft.net/framework/v4.0.30319"
     "-lib:${CMAKE_CURRENT_BINARY_DIR}/"
-    "${CMAKE_CURRENT_BINARY_DIR}/bin/AnyCPU/Debug/hotrodcs-tests.dll"
+    "${CMAKE_CURRENT_BINARY_DIR}/bin/${PLATFORM}/Debug/hotrodcs-tests.dll"
 
     COMMAND ${IKVMSTUB_BINARY}
     -out:${java_tests_dir}/mscorlib.jar
@@ -256,7 +295,7 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
     "clean" "package"
 
     WORKING_DIRECTORY ${java_tests_dir}
-    DEPENDS hotrodcs-tests-bin-Debug-AnyCPU hotrodcs-bin)
+    DEPENDS hotrodcs-test-bin)
 
   add_test(NAME java_tests
     WORKING_DIRECTORY ${java_tests_dir}
@@ -266,10 +305,10 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
     # -DVERBOSE_HOTROD_JAVA_TESTS=true
     -Djava.net.preferIPv4Stack=true
     -Xreference:${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.dll
-    -Xreference:${CMAKE_CURRENT_BINARY_DIR}/bin/AnyCPU/Debug/hotrodcs-tests.dll
+    -Xreference:${CMAKE_CURRENT_BINARY_DIR}/bin/${PLATFORM}/Debug/hotrodcs-tests.dll
     "org.infinispan.client.hotrod.JavaClientTests")
   set_tests_properties(java_tests PROPERTIES ENVIRONMENT "HOTROD_IPSTACK=IPV4;JAVA_TESTS_DIR=${java_tests_dir}" TIMEOUT 1200)
-  
+
   add_test(NAME cross_language_test
     WORKING_DIRECTORY ${java_tests_dir}
     COMMAND ${java_tests_dir}/run_ikvm.bat
@@ -280,11 +319,10 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
     -Dinfinispan.client.hotrod.java=${java_tests_dir}/target/infinispan-client-hotrod
     -Dinfinispan.client.hotrod.dotnet=${java_tests_dir}/hotrodcs.jar
     -Xreference:${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.dll
-    -Xreference:${CMAKE_CURRENT_BINARY_DIR}/bin/AnyCPU/Debug/hotrodcs-tests.dll
+    -Xreference:${CMAKE_CURRENT_BINARY_DIR}/bin/${PLATFORM}/$<CONFIG>/hotrodcs-tests.dll
     "org.infinispan.client.hotrod.CrossLanguageHotRodTest")
   set_tests_properties(cross_language_test PROPERTIES ENVIRONMENT "HOTROD_IPSTACK=IPV4;JAVA_TESTS_DIR=${java_tests_dir}" TIMEOUT 1200)
-  
-    
+
 endif (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
 
 if (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
@@ -295,17 +333,11 @@ if (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
     file (TO_NATIVE_PATH "${NUNIT_BINARY_X86}" NUNIT_NATIVE_BINARY)
     configure_file(templates/nunit.bat.in nunit32.bat)
 
-    foreach (platform "AnyCPU" "x64")
-      foreach (configuration "Release" "Debug")
-        add_test(csharp_unittests_${platform}_${configuration} nunit64.bat "bin/${platform}/${configuration}/")
-      endforeach (configuration)
-    endforeach (platform)
-
-    foreach (platform "x86")
-      foreach (configuration "Release" "Debug")
-        add_test(csharp_unittests_${platform}_${configuration} nunit32.bat "bin/${platform}/${configuration}/")
-      endforeach (configuration)
-    endforeach (platform)
+    if (ISWIN64)
+      add_test(NAME csharp_unittests COMMAND nunit64.bat bin/x64/$<CONFIG>/)
+    else (ISWIN64)
+      add_test(NAME csharp_unittests COMMAND nunit32.bat bin/x86/$<CONFIG>/)
+    endif (ISWIN64)
   else (WIN32)
     add_test(csharp_unittests ${MONO_BINARY} ${NUNIT_BINARY} hotrodcs-tests.dll)
     set_tests_properties(csharp_unittests PROPERTIES ENVIRONMENT "JBOSS_HOME=${HOTROD_JBOSS_HOME}")
@@ -313,38 +345,35 @@ if (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
 endif (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
 
 ### Packaging. ###
-set (CPACK_PACKAGE_VENDOR "Infinispan")
-set (CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
 set (CPACK_GENERATOR "WIX")
 set (CPACK_SOURCE_GENERATOR "ZIP")
 
-foreach (arch 32 64)
-  # Native client.
-  if (${arch} EQUAL 64)
-    set (native_lib_suffix "")
-  else (${arch} EQUAL 64)
-    set (native_lib_suffix "32")
-  endif (${arch} EQUAL 64)
+# Native client.
+if (ISWIN64)
+  set (native_lib_suffix "")
+  set (arch "64")
+else (ISWIN64)
+  set (native_lib_suffix "32")
+  set (arch "32")
+endif (ISWIN64)
 
-  install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/native_client/lib/hotrod${native_lib_suffix}.dll" DESTINATION lib/)
-  install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/native_client/lib/hotrod${native_lib_suffix}.lib" DESTINATION lib/)
-  # Native wrapper.
-  foreach (conf ${CMAKE_CONFIGURATION_TYPES})
-    install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/${conf}/hotrod_wrap${arch}.dll" DESTINATION lib/ OPTIONAL)
-    install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/${conf}/hotrod_wrap${arch}.lib" DESTINATION lib/ OPTIONAL)
-  endforeach (conf)
-  # Managed wrapper.
-  install (FILES "${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.dll" DESTINATION lib/)
-  # Managed wrapper API doc for IDE.
-  install (FILES "${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.xml" DESTINATION lib/)
-  # Dependencies.
-  install (FILES "${NLOG_DLL_LOCAL}" DESTINATION lib/)
-  install (FILES "${NLOG_LICENSE_LOCAL}" DESTINATION lib/ OPTIONAL)
-endforeach (arch)
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/native_client/lib/hotrod${native_lib_suffix}.dll" DESTINATION lib/)
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/native_client/lib/hotrod${native_lib_suffix}.lib" DESTINATION lib/)
+# Native wrapper.
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/$<CONFIG>/hotrod_wrap${arch}.dll" DESTINATION lib/ OPTIONAL)
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/swig${arch}/$<CONFIG>/hotrod_wrap${arch}.lib" DESTINATION lib/ OPTIONAL)
+# Managed wrapper.
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.dll" DESTINATION lib/)
+# Managed wrapper API doc for IDE.
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/hotrodcs.xml" DESTINATION lib/)
+# Dependencies.
+install (FILES "${NLOG_DLL_LOCAL}" DESTINATION lib/)
+install (FILES "${NLOG_LICENSE_LOCAL}" DESTINATION lib/ OPTIONAL)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/README.txt.in" README.txt NEWLINE_STYLE CRLF)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/License.txt" License.txt NEWLINE_STYLE CRLF)
+file (COPY "${CMAKE_CURRENT_SOURCE_DIR}/License.rtf" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
 install (FILES
   "${CMAKE_CURRENT_BINARY_DIR}/License.txt"
   "${CMAKE_CURRENT_BINARY_DIR}/README.txt"
@@ -353,8 +382,36 @@ install (FILES
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/wix.xml.in" wix.xml)
 set (CPACK_WIX_TEMPLATE "wix.xml")
 set (CPACK_WIX_UPGRADE_GUID "7cc17657-80b5-417f-9209-710682f852f4") # This value should not change.
-
 set (CPACK_SOURCE_IGNORE_FILES "/build.*/;/\\\\.git/")
+
+#Bundle-specific properties (see wix-bundle.cmake).
+if (DEFINED HOTROD_BUILD_BUNDLE OR DEFINED ENV{HOTROD_BUILD_BUNDLE})
+  if (NOT DEFINED HOTROD_VCREDIST_x86)
+    if (DEFINED ENV{HOTROD_VCREDIST_x86})
+      set (HOTROD_VCREDIST_x86 "$ENV{HOTROD_VCREDIST_x86}")
+    else ()
+      message (FATAL_ERROR "When building a bundle you need to point HOTROD_VCREDIST_x86 to the corresponding VC++ x86 runtime to be included in the bundle.")
+    endif()
+  endif ()
+
+  if (NOT DEFINED HOTROD_VCREDIST_x64)
+    if (DEFINED ENV{HOTROD_VCREDIST_x64})
+      set (HOTROD_VCREDIST_x64 "$ENV{HOTROD_VCREDIST_x64}")
+    else ()
+      message (FATAL_ERROR "When building a bundle you need to point HOTROD_VCREDIST_x64 to the corresponding VC++ x64 runtime to be included in the bundle.")
+    endif ()
+  endif ()
+
+  if (NOT DEFINED HOTROD_DOTNET)
+    if (DEFINED ENV{HOTROD_DOTNET})
+      set (HOTROD_DOTNET "$ENV{HOTROD_DOTNET}")
+    else ()
+      message (FATAL_ERROR "When building a bundle you need to point HOTROD_DOTNET to the corresponding .NET runtime to be included in the bundle.")
+    endif ()
+  endif ()
+
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/templates/wix-bundle.xml.in" wix-bundle.xml)
+endif()
 
 include (CPack)
 
