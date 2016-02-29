@@ -2,7 +2,7 @@ rmdir /s /q build_windows
 mkdir build_windows
 cd build_windows
 
-cmake -G "%generator%" %* ..
+cmake -G %generator% %* ..
 if %errorlevel% neq 0 goto fail
 
 cmake --build . --config RelWithDebInfo
