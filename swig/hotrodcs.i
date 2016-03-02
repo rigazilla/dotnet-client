@@ -17,7 +17,6 @@
 #include <infinispan/hotrod/RemoteCache.h>
 #include <infinispan/hotrod/RemoteCacheBase.h>
 #include <infinispan/hotrod/RemoteCacheManager.h>
-#include <infinispan/hotrod/ScopedBuffer.h>
 #include <infinispan/hotrod/ServerConfiguration.h>
 #include <infinispan/hotrod/ServerConfigurationBuilder.h>
 #include <infinispan/hotrod/SslConfiguration.h>
