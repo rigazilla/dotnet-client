@@ -36,7 +36,7 @@ endif (WIN32)
 if (CMAKE_MAJOR_VERSION LESS 3)
   set_source_files_properties(${HOTROD_SWIG_MODULE_SOURCE} PROPERTIES SWIG_FLAGS "-v;-namespace;Infinispan.HotRod.SWIG${ARCH};-dllimport;${HOTROD_WRAP_LIB}")
 else (CMAKE_MAJOR_VERSION LESS 3)
-  set_source_files_properties(${HOTROD_SWIG_MODULE_SOURCE} PROPERTIES SWIG_FLAGS "-v;-namespace;Infinispan.HotRod.SWIG${ARCH}")
+  set_source_files_properties(${HOTROD_SWIG_MODULE_SOURCE} PROPERTIES SWIG_FLAGS "-v;-namespace;Infinispan.HotRod.SWIG${ARCH};")
 endif (CMAKE_MAJOR_VERSION LESS 3)
 
 include_directories(${HOTRODCPP_INCLUDE_DIR})
