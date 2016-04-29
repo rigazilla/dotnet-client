@@ -192,7 +192,6 @@ if (WIN32)
 else (WIN32)
 #TODO: mono
 endif (WIN32)
-
 ### Compile the C# code ###
 if (NOT DEFINED NLOG_DLL AND DEFINED ENV{NLOG_DLL})
   set (NLOG_DLL $ENV{NLOG_DLL})
@@ -359,6 +358,7 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
   # Pass the updated path using an external script.
   file (TO_NATIVE_PATH "${IKVM_BINARY}" IKVM_NATIVE_BINARY)
   configure_file(templates/run_ikvm.bat.in ${java_tests_dir}/run_ikvm.bat)
+  configure_file(templates/run_ispn.bat.in ${CMAKE_CURRENT_BINARY_DIR}/run_ispn.bat)
 
   add_custom_target (hotrod-ikvm-jar ALL
     COMMAND ${IKVMSTUB_BINARY}
@@ -429,7 +429,6 @@ if (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
     -Xreference:${CMAKE_CURRENT_BINARY_DIR}/bin/${PLATFORM}/$<CONFIG>/hotrodcs-tests.dll
     "org.infinispan.client.hotrod.StringSerializerHotRodTest")
   set_tests_properties(compatibility_serializer_test PROPERTIES ENVIRONMENT "HOTROD_IPSTACK=IPV4;JAVA_TESTS_DIR=${java_tests_dir}" TIMEOUT 1200)
-  
     
 endif (NOT DEFINED ENABLE_JAVA_TESTING OR ENABLE_JAVA_TESTING)
 
@@ -451,6 +450,22 @@ if (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
     set_tests_properties(csharp_unittests PROPERTIES ENVIRONMENT "JBOSS_HOME=${HOTROD_JBOSS_HOME}")
   endif (WIN32)
 endif (NOT DEFINED ENABLE_CSHARP_TESTING OR ENABLE_CSHARP_TESTING)
+
+#add_test(NAME start_jboss
+#WORKING_DIRECTORY ${JBOSS_HOME}/bin
+#COMMAND ${CMAKE_CURRENT_BINARY_DIR}/run_ispn.bat
+#)
+#
+#add_test(NAME nativeTestSuite
+#WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/$<CONFIG>
+#COMMAND nativeTestSuite.exe "${CMAKE_CURRENT_SOURCE_DIR}/nativeTestSuite"
+#)
+#
+#add_test(NAME stop_jboss
+#WORKING_DIRECTORY ${JBOSS_HOME}/bin
+#COMMAND ispn-cli.bat --connect command=:shutdown
+#)
+  
 
 ### Packaging. ###
 set (CPACK_GENERATOR "WIX")

@@ -19,6 +19,43 @@ namespace nativeTestSuite
         const String ERRORS_KEY_SUFFIX = ".errors";
         const String PROTOBUF_METADATA_CACHE_NAME = "___protobuf_metadata";
 
+        static void Main(string[] args)
+        {
+            ConfigurationBuilder conf = new ConfigurationBuilder();
+            conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
+            conf.Marshaller(new BasicTypesProtoStreamMarshaller());
+            RemoteCacheManager remote = new RemoteCacheManager(conf.Build(), true);
+            IRemoteCache<String,String> metadataCache = remote.GetCache<String, String>(PROTOBUF_METADATA_CACHE_NAME);
+            IRemoteCache<int, User> testCache = remote.GetCache<int, User>("namedCache");
+            String path = (args.Length > 0) ? args[0] : "";
+            metadataCache.Put("sample_bank_account/bank.proto", File.ReadAllText(path+"/query_proto/bank.proto"));
+            if (metadataCache.ContainsKey(ERRORS_KEY_SUFFIX))
+            {
+                System.Console.WriteLine("fail: error in registering .proto model");
+                Environment.Exit(-1);
+            }
+
+            User user1 = new User();
+            user1.Id = 4;
+             user1.Name= "Jerry";
+            user1.Surname="Mouse";
+
+             User ret = testCache.Put(4, user1);
+
+
+            QueryRequest qr = new QueryRequest();
+            qr.JpqlString="from sample_bank_account.User";
+
+
+            QueryResponse result=testCache.Query(qr);
+            List<User> l = new List<User>();
+            unwrapResults(result, l);
+
+            System.Console.WriteLine("result string is: "+l);
+
+
+        }
+
         private static bool unwrapResults<T>(QueryResponse resp, List<T> res) where T : IMessage<T>
         {
             if (resp.ProjectionSize > 0)
@@ -36,7 +73,7 @@ namespace nativeTestSuite
                     {
                         System.Reflection.PropertyInfo pi = typeof(T).GetProperty("Parser");
 
-                        MessageParser<T> p = (MessageParser < T > )pi.GetValue(null);
+                        MessageParser<T> p = (MessageParser<T>)pi.GetValue(null);
                         T u = p.ParseFrom(wmr.WrappedMessageBytes);
                         res.Add(u);
                     }
@@ -45,39 +82,5 @@ namespace nativeTestSuite
             return true;
         }
 
-        static void Main(string[] args)
-        {
-            ConfigurationBuilder conf = new ConfigurationBuilder();
-            conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
-            conf.Marshaller(new BasicTypesProtoStreamMarshaller());
-            RemoteCacheManager remote = new RemoteCacheManager(conf.Build(), true);
-            IRemoteCache<String,String> metadataCache = remote.GetCache<String, String>(PROTOBUF_METADATA_CACHE_NAME);
-            IRemoteCache<int, User> testCache = remote.GetCache<int, User>("namedCache");
-            metadataCache.Put("sample_bank_account/bank.proto", File.ReadAllText(@"query_proto/bank.proto"));
-            User user1 = new User();
-            user1.Id = 4;
-             user1.Name= "Jerry";
-            user1.Surname="Mouse";
-
-             User ret = testCache.Put(4, user1);
-
-
-            QueryRequest qr = new QueryRequest();
-            qr.JpqlString="from sample_bank_account.User";
-
-
-            QueryResponse result=testCache.Query(qr);
-            List<User> l = new List<User>();
-            unwrapResults(result, l);
-
-            System.Console.WriteLine("result string is: "+result);
-
-            if (metadataCache.ContainsKey(ERRORS_KEY_SUFFIX))
-            {
-                System.Console.WriteLine("fail: error in registering .proto model");
-                Environment.Exit(-1);
-            }
-
-        }
     }
 }
