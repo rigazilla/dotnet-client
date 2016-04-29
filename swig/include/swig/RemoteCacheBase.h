@@ -50,6 +50,7 @@ protected:
     HR_EXTERN void  base_withFlags(Flag flag);
     HR_EXTERN char *base_execute(RemoteCacheBase& remoteCacheBase, std::string cmdName,  const std::map<std::string,std::string>& args);
     HR_EXTERN CacheTopologyInfo base_getCacheTopologyInfo();
+    HR_EXTERN std::vector<unsigned char> base_query_char(std::vector<unsigned char> str, size_t size);
 
 
     RemoteCacheBase() {}
