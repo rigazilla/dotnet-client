@@ -3,6 +3,8 @@
 %{
 #include <infinispan/hotrod/BasicMarshaller.h>
 #include <infinispan/hotrod/FailOverRequestBalancingStrategy.h>
+#include <infinispan/hotrod/ClientEvent.h>
+#include <infinispan/hotrod/ClientListener.h>
 #include <infinispan/hotrod/Configuration.h>
 #include <infinispan/hotrod/ConfigurationBuilder.h>
 #include <infinispan/hotrod/ConfigurationChildBuilder.h>
@@ -77,6 +79,8 @@
 
 
 
+%include "infinispan/hotrod/ClientEvent.h"
+%include "infinispan/hotrod/ClientListener.h"
 %include "infinispan/hotrod/ConnectionPoolConfiguration.h"
 %include "infinispan/hotrod/ServerConfiguration.h"
 %include "infinispan/hotrod/SslConfiguration.h"
@@ -194,6 +198,9 @@ namespace hotrod {
  }
 
 %template(RemoteByteArrayCache) infinispan::hotrod::RemoteCache<infinispan::hotrod::ByteArray, infinispan::hotrod::ByteArray>;
+%template(ClientCacheEntryCreatedEventByteArray) infinispan::hotrod::event::ClientCacheEntryCreatedEvent<infinispan::hotrod::ByteArray>;
+%template(ClientCacheEntryModifiedEventByteArray) infinispan::hotrod::event::ClientCacheEntryModifiedEvent<infinispan::hotrod::ByteArray>;
+%template(ClientCacheEntryRemovedEventByteArray) infinispan::hotrod::event::ClientCacheEntryRemovedEvent<infinispan::hotrod::ByteArray>;
 
 %template(ValueMetadataPair) std::pair<std::shared_ptr<infinispan::hotrod::ByteArray>, infinispan::hotrod::MetadataValue>;
 %template(ValueVersionPair) std::pair<std::shared_ptr<infinispan::hotrod::ByteArray>, infinispan::hotrod::VersionedValue>;
