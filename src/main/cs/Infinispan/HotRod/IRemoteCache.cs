@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Org.Infinispan.Query.Remote.Client;
 using System.Threading.Tasks;
-
+using Infinispan.HotRod.Event;
 namespace Infinispan.HotRod
 {
     /// <summary>
@@ -496,6 +496,18 @@ namespace Infinispan.HotRod
         /// <returns>An instance of Task&lt;bool&gt; that will contains the result of the Remove</returns>
         /// <see cref="RemoveWithVersion(K, ulong)"/>
         Task<bool> RemoveWithVersionAsync(K key, ulong version);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filterName"></param>
+        /// <param name="converterName"></param>
+        /// <param name="includeCurrentState"></param>
+        /// <param name="filterFactoryParams"></param>
+        /// <param name="converterFactoryParams"></param>
+        /// <param name="recoveryCallback"></param>
+        /// <returns></returns>
+        List<Event.ClientEvent> addClientListener(string filterName, string converterName, bool includeCurrentState, string[] filterFactoryParams, string[] converterFactoryParams, Action recoveryCallback);
 
     }
 }

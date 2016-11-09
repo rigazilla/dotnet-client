@@ -7,6 +7,7 @@ using Org.Infinispan.Query.Remote.Client;
 using System.IO;
 using Google.Protobuf;
 using System.Threading.Tasks;
+using Infinispan.HotRod.Event;
 
 namespace Infinispan.HotRod.Impl
 {
@@ -477,6 +478,62 @@ namespace Infinispan.HotRod.Impl
             }
         }
 
+        VectorChar toVectorChar(string s)
+        {
+            VectorChar v = new VectorChar();
+            foreach (char c in s)
+            {
+                v.Add(c);
+            }
+            return v;
+        }
+
+        public List<Event.ClientEvent> addClientListener(string filterName, string converterName, bool includeCurrentState, string[] filterFactoryParams, string[] converterFactoryParams, Action recoveryCallback)
+        {
+                     VectorVectorChar vvcFilterParams = new VectorVectorChar();
+                     foreach(string s in filterFactoryParams)
+                     {
+                         vvcFilterParams.Add(toVectorChar(s));
+                     }
+
+                     VectorVectorChar vvcConverterParams = new VectorVectorChar();
+                     foreach (string s in converterFactoryParams)
+                     {
+                         vvcConverterParams.Add(toVectorChar(s));
+                     }
+                     EnableEventsOnServerResult e= cache.enableEventsOnServer(toVectorChar(filterName), toVectorChar(converterName), includeCurrentState, vvcFilterParams, vvcConverterParams);
+                     foreach (ClientCacheEventData cData in e.eventDataVector)
+            {
+                Console.Out.WriteLine("Event key: " + cData.key);
+            }
+            return null;
+            /*         VectorVectorChar vvcFilterParams = new VectorVectorChar();
+                     foreach(string s in filterFactoryParams)
+                     {
+                         VectorChar v = new VectorChar();
+                         foreach (char c in s)
+                         {
+                             v.Add(c);
+                         }
+                         vvcFilterParams.Add(v);
+                     }
+
+                     VectorVectorChar vvcConverterParams = new VectorVectorChar();
+                     foreach (string s in converterFactoryParams)
+                     {
+                         VectorChar v = new VectorChar();
+                         foreach (char c in s)
+                         {
+                             v.Add(c);
+                         }
+                         vvcConverterParams.Add(v);
+                     }
+                     PtrClientEventVector cev =  cache.addClientListener(vvcFilterParams, vvcConverterParams);
+                     foreach (Infinispan.HotRod.SWIGGen.ClientEvent ce in cev)
+                         Console.Out.WriteLine("Type of event is "+ce.getType());
+                     return null;
+                 */
+        }
     }
 #pragma warning restore 1591
 }

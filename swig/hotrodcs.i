@@ -52,6 +52,7 @@ namespace org { namespace infinispan { namespace query { namespace remote { name
 %include "std_vector.i"
 
 %template (VectorChar) std::vector<char>;
+%template (VectorVectorChar) std::vector<std::vector<char> >;
 %template (VectorByte) std::vector<unsigned char>;
 
 %include "std_shared_ptr.i"
@@ -223,8 +224,22 @@ namespace hotrod {
 %template(StringMap) std::map<std::string, std::string>;
 %template(ByteArrayVector) std::vector<std::shared_ptr<infinispan::hotrod::ByteArray> >;
 %template(ServerConfigurationVector) std::vector<infinispan::hotrod::ServerConfiguration>;
+%template(ClientCacheEventDataVector) std::vector<infinispan::hotrod::event::ClientCacheEventData>;
+%template(PtrClientEventVector) std::vector<std::shared_ptr<infinispan::hotrod::event::ClientEvent> >;
 %template(ServerConfigurationMap) std::map<std::string,std::vector<infinispan::hotrod::ServerConfiguration> >;
 %extend infinispan::hotrod::RemoteCacheManager {
     %template(getByteArrayCache) getCache<infinispan::hotrod::ByteArray, infinispan::hotrod::ByteArray>;
 };
+%extend infinispan::hotrod::RemoteCache<infinispan::hotrod::ByteArray, infinispan::hotrod::ByteArray> {
+    infinispan::hotrod::event::EnableEventsOnServerResult enableEventsOnServer(std::vector<char> filterName, std::vector<char> converterName, bool includeCurrentState
+                                                , const std::vector<std::vector<char> > filterFactoryParam, const std::vector<std::vector<char> > converterFactoryParams)
+    {
+       return $self->base_enableEventsOnServer(filterName, converterName, includeCurrentState, filterFactoryParam, converterFactoryParams);
+    }
 
+
+  void bar() {
+    // don't for get to #include <iostream> where you include vector:
+    std::cout << "Hello from bar" << std::endl;       
+  }
+}
