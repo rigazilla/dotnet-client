@@ -1,8 +1,6 @@
 package org.infinispan.client.hotrod.configuration;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
@@ -37,7 +35,6 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
    private Marshaller marshaller;
    private boolean pingOnStartup = true;
    private String protocolVersion = ConfigurationProperties.DEFAULT_PROTOCOL_VERSION;
-   private List<ServerConfigurationBuilder> servers = new ArrayList<ServerConfigurationBuilder>();
    private int socketTimeout = ConfigurationProperties.DEFAULT_SO_TIMEOUT;
    private final SslConfigurationBuilder ssl;
    private boolean tcpNoDelay = true;
@@ -69,9 +66,11 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
 
    @Override
    public ServerConfigurationBuilder addServer() {
-      ServerConfigurationBuilder builder = new ServerConfigurationBuilder(this);
-      this.servers.add(builder);
-      return builder;
+      return new ServerConfigurationBuilder(this, jniConfigurationBuilder.AddServer());
+   }
+   
+   public ClusterConfigurationBuilder addCluster(String clusterName) {
+      return new ClusterConfigurationBuilder(this, jniConfigurationBuilder.AddCluster(clusterName));	   
    }
 
    @Override
@@ -262,7 +261,6 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
 //      }
       this.pingOnStartup(typed.getBooleanProperty(ConfigurationProperties.PING_ON_STARTUP, pingOnStartup));
       this.protocolVersion(typed.getProperty(ConfigurationProperties.PROTOCOL_VERSION, protocolVersion));
-      this.servers.clear();
       this.addServers(typed.getProperty(ConfigurationProperties.SERVER_LIST, ""));
       this.socketTimeout(typed.getIntProperty(ConfigurationProperties.SO_TIMEOUT, socketTimeout));
       this.tcpNoDelay(typed.getBooleanProperty(ConfigurationProperties.TCP_NO_DELAY, tcpNoDelay));
@@ -283,14 +281,6 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
 
    @Override
    public Configuration create() {
-      // List<ServerConfiguration> servers = new ArrayList<ServerConfiguration>();
-      // if (this.servers.size() > 0)
-      //    for (ServerConfigurationBuilder server : this.servers) {
-      //       servers.add(server.create());
-      //    }
-      // else {
-      //    servers.add(new ServerConfiguration("127.0.0.1", ConfigurationProperties.DEFAULT_HOTROD_PORT));
-      // }
       return new Configuration(this.jniConfigurationBuilder.Create());
    }
 
@@ -322,7 +312,6 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
       this.marshallerClass = template.marshallerClass();
       this.pingOnStartup(template.pingOnStartup());
       this.protocolVersion(template.protocolVersion());
-      this.servers.clear();
       for (ServerConfiguration server : template.servers()) {
          this.addServer().host(server.host()).port(server.port());
       }

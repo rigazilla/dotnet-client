@@ -21,6 +21,11 @@ public abstract class AbstractConfigurationChildBuilder implements Configuration
    }
 
    @Override
+   public ClusterConfigurationBuilder addCluster(String clusterName) {
+      return builder.addCluster(clusterName);
+   }
+
+   @Override
    public ServerConfigurationBuilder addServer() {
       return builder.addServer();
    }

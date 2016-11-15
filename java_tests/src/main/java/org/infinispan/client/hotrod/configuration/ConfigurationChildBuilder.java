@@ -18,6 +18,11 @@ import org.infinispan.commons.marshall.Marshaller;
 public interface ConfigurationChildBuilder {
 
    /**
+    * Adds a new cluster for cross-data center replication. 
+    */       
+   ClusterConfigurationBuilder addCluster(String clusterName);
+   
+   /**
     * Adds a new remote server
     */
    ServerConfigurationBuilder addServer();

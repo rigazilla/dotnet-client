@@ -88,5 +88,13 @@ namespace Infinispan.HotRod.Wrappers
         {
             return new RemoteCache(manager.GetCache<object, object>(cacheName, forceReturnValue));
         }
+        
+        public bool SwitchToCluster(String clusterName) {
+            return manager.SwitchToCluster(clusterName);
+        }
+        
+        public bool SwitchToDefaultCluster() {
+            return manager.SwitchToDefaultCluster();
+        }
     }
 }

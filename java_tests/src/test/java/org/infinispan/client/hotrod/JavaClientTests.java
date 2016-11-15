@@ -28,6 +28,7 @@ import org.infinispan.client.hotrod.ServerRestartTest;
 import org.infinispan.client.hotrod.ServerShutdownTest;
 import org.infinispan.client.hotrod.SizeTest;
 import org.infinispan.client.hotrod.SocketTimeoutErrorTest;
+import org.infinispan.client.hotrod.xsite.SiteManualSwitchTest;
 import org.testng.IMethodSelector;
 import org.testng.IMethodSelectorContext;
 import org.testng.ITestNGMethod;
@@ -80,7 +81,8 @@ public class JavaClientTests implements IMethodSelector {
             ServerShutdownTest.class,
             SizeTest.class,
             SocketTimeoutErrorTest.class,
-            RemoteAsyncAPITest.class
+            RemoteAsyncAPITest.class,
+            SiteManualSwitchTest.class
       });
 
       testng.addListener(tr);
