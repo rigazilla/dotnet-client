@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Infinispan.HotRod.Tests.Util;
 using NUnit.Framework;
+using Infinispan.HotRod.Exceptions;
 
 namespace Infinispan.HotRod.Tests
 {
@@ -145,9 +146,17 @@ namespace Infinispan.HotRod.Tests
                 cache.Put("key1", "value1");
                 AssertOnlyCustom("custom event: key1 value1", listener);
             }
+            catch (System.Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
             finally
             {
-                cache.RemoveClientListener(cl);
+                try
+                {
+                    cache.RemoveClientListener(cl);
+                }
+                catch (System.Exception ) { }
             }
         }
         private void AssertNoEvents(LoggingEventListener<string> listener)
