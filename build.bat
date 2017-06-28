@@ -27,6 +27,11 @@ ctest -V -C RelWithDebInfo
 )
 if %errorlevel% neq 0 goto fail
 
+Y:
+
+cd \build_windows
+
+
 cpack -G ZIP --config CPackSourceConfig.cmake
 if %errorlevel% neq 0 goto fail
 
@@ -53,4 +58,5 @@ goto eof
     exit /b 1
 :eof
 %home_drive%
+cd ..
 subst Y: /D

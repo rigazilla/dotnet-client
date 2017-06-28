@@ -431,74 +431,20 @@ namespace Infinispan.HotRod.Impl
             {
                 vvcConverterParams.Add(toVectorChar(marshaller.ObjectToByteBuffer(s)));
             }
-            DotNetClientListener listener=cache.addClientListener(toVectorChar(cl.filterFactoryName), toVectorChar(cl.converterFactoryName), cl.includeCurrentState, vvcFilterParams, vvcConverterParams);
+            InternalClientEventListenerCallback<K,V> cb = new InternalClientEventListenerCallback<K,V>(cl, marshaller);
+            DotNetClientListener listener =cache.addClientListener(cb, toVectorChar(cl.filterFactoryName), toVectorChar(cl.converterFactoryName), cl.includeCurrentState, vvcFilterParams, vvcConverterParams, cl.useRawData, cl.interestFlag);
             cl.listenerId = toString(listener.getListenerId()).ToCharArray();
-            Task t = Task.Run(() => {
-                while (!listener.isShutdown())
-                {
-                    ClientCacheEventData evData = listener.pop();
-                    if (listener.isShutdown())
-                    {
-                        break;
+            addListener(cl.listenerId, listener);
                     }
-                    if (evData.eventType==0xff)
-                    {
-                        // Wait on pop is timed out. Needed for collaborative shutdown
-                        continue;
-                    }
-                    switch (evData.eventType)
-                    {
-                        case (byte)EventType.CLIENT_CACHE_ENTRY_CREATED:
-                            {
-                                ClientCacheEntryCreatedEvent<K> ev = new ClientCacheEntryCreatedEvent<K>((K)unwrap(evData.key), evData.version, evData.isCommandRetried);
-                                cl.ProcessEvent(ev);
-                            }
-                            break;
-                        case (byte)EventType.CLIENT_CACHE_ENTRY_MODIFIED:
-                            {
-                                ClientCacheEntryModifiedEvent<K> ev = new ClientCacheEntryModifiedEvent<K>((K)unwrap(evData.key), evData.version, evData.isCommandRetried);
-                                cl.ProcessEvent(ev);
-                            }
-                            break;
-                        case (byte)EventType.CLIENT_CACHE_ENTRY_REMOVED:
-                            {
-                                ClientCacheEntryRemovedEvent<K> ev = new ClientCacheEntryRemovedEvent<K>((K)unwrap(evData.key), evData.isCommandRetried);
-                                cl.ProcessEvent(ev);
-                            }
-                            break;
-                        case (byte)EventType.CLIENT_CACHE_ENTRY_EXPIRED:
-                            {
-                                ClientCacheEntryExpiredEvent<K> ev = new ClientCacheEntryExpiredEvent<K>((K)unwrap(evData.key));
-                                cl.ProcessEvent(ev);
-                            }
-                            break;
-                        case (byte)EventType.CLIENT_CACHE_ENTRY_CUSTOM:
-                            {
-                                ClientCacheEntryCustomEvent ev = new ClientCacheEntryCustomEvent(toByteArray(evData.data), evData.isCommandRetried);
-                                cl.ProcessEvent(ev);
-                            }
-                            break;
-                        case (byte)EventType.CLIENT_CACHE_FAILOVER:
-                            {
-                                recoveryCallback();
-                            }
-                            break;
-                    }
-                }
-                cache.deleteListener(listener);
-            });
-            addListener(cl.listenerId, new Tuple<Task, DotNetClientListener>(t, listener));
-        }
 
-        public static IDictionary<char[], Tuple<Task, DotNetClientListener> > runnningListeners = new Dictionary<char[], Tuple<Task, DotNetClientListener> >();
+        public static IDictionary<char[], DotNetClientListener > runnningListeners = new Dictionary<char[], DotNetClientListener>();
 
-        static void addListener(char[] listenerId, Tuple<Task, DotNetClientListener> tuple)
+        static void addListener(char[] listenerId, DotNetClientListener listener)
         {
-            runnningListeners.Add(listenerId, tuple);
+            runnningListeners.Add(listenerId, listener);
         }
         public static void stopAndRemoveTask(char[] listenerId)
         {
-            runnningListeners[listenerId].Item2.setShutdown(true);
             runnningListeners.Remove(listenerId);
         }
 
