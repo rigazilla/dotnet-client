@@ -30,6 +30,7 @@
             <security-realm name="ApplicationRealm">
                 <authentication>
                     <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
+                    <truststore path="ca.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
                     <properties path="application-users.properties" relative-to="jboss.server.config.dir"/>
                 </authentication>
                 <authorization>
@@ -167,13 +168,9 @@
         <subsystem xmlns="urn:infinispan:server:endpoint:9.0">
             <hotrod-connector socket-binding="hotrod" cache-container="local">
                 <topology-state-transfer lock-timeout="1000" replication-timeout="5000"/>
-                <encryption security-realm="ApplicationRealm" require-ssl-client-auth="false">
+                <encryption security-realm="ApplicationRealm" require-ssl-client-auth="true">
                      <sni host-name="sni1" security-realm="RealmSNI1"/>
                      <sni host-name="sni2" security-realm="RealmSNI2"/>
-                     <!-- Due to HRCPP-311 we rather expose an sni for which the client does
-                          not have a certificate registered. This equals to the case when
-                          client has a certificate registered but the server has an untrusted
-                          identity -->
                      <sni host-name="sni3-unstrusted" security-realm="RealmSNI3-untrusted"/>
                 </encryption>
             </hotrod-connector>
