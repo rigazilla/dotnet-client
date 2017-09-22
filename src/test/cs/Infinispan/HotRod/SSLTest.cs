@@ -11,8 +11,9 @@ namespace Infinispan.HotRod.Tests
         {
             ConfigurationBuilder conf = new ConfigurationBuilder();
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
-            registerServerCAFile(conf, "ca.pem");
-            registerClientCertificateFile(conf, "keystore_client.p12");
+            SslConfigurationBuilder sslConf = conf.Ssl();
+            registerServerCAFile(sslConf, "infinispan-ca.pem");
+            registerClientCertificateFile(sslConf, "truststore_client.p12");
             conf.Marshaller(new JBasicMarshaller());
 
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
@@ -31,7 +32,7 @@ namespace Infinispan.HotRod.Tests
             ConfigurationBuilder conf = new ConfigurationBuilder();
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
             conf.Marshaller(new JBasicMarshaller());
-            registerServerCAFile(conf, "keystore_server_sni1.pem", "sni1");
+            registerServerCAFile(conf.Ssl(), "keystore_server_sni1.pem", "sni1");
             
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();
@@ -49,7 +50,7 @@ namespace Infinispan.HotRod.Tests
             ConfigurationBuilder conf = new ConfigurationBuilder();
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
             conf.Marshaller(new JBasicMarshaller());
-            registerServerCAFile(conf, "keystore_server_sni2.pem", "sni2");
+            registerServerCAFile(conf.Ssl(), "keystore_server_sni2.pem", "sni2");
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();
 
@@ -67,7 +68,8 @@ namespace Infinispan.HotRod.Tests
             ConfigurationBuilder conf = new ConfigurationBuilder();
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
             conf.Marshaller(new JBasicMarshaller());
-            registerServerCAFile(conf, "malicious.pem", "sni3-untrusted");
+
+            registerServerCAFile(conf.Ssl(), "malicious.pem", "sni3-untrusted");
 
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();
@@ -79,27 +81,25 @@ namespace Infinispan.HotRod.Tests
             Assert.Fail("Should not get here");
         }
 
-        void registerServerCAFile(ConfigurationBuilder conf, string filename = "", string sni = "")
+        void registerServerCAFile(SslConfigurationBuilder conf, string filename = "", string sni = "")
         {
-            SslConfigurationBuilder sslConfB = conf.Ssl();
             if (filename != "")
             {
                 checkFileExists(filename);
-                sslConfB.Enable().ServerCAFile(filename);
+                conf.Enable().ServerCAFile(filename);
                 if (sni != "")
                 {
-                    sslConfB.SniHostName(sni);
+                    conf.SniHostName(sni);
                 }
             }
         }
 
-        void registerClientCertificateFile(ConfigurationBuilder conf, string filename = "")
+        void registerClientCertificateFile(SslConfigurationBuilder conf, string filename = "")
         {
-            SslConfigurationBuilder sslConfB = conf.Ssl();
             if (filename != "")
             {
                 checkFileExists(filename);
-                sslConfB.Enable().ClientCertificateFile(filename);
+                conf.Enable().ClientCertificateFile(filename);
             }
         }
 
