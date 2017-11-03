@@ -33,7 +33,8 @@ namespace Infinispan.HotRod.Tests
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
             conf.Marshaller(new JBasicMarshaller());
             registerServerCAFile(conf.Ssl(), "keystore_server_sni1.pem", "sni1");
-            
+            registerClientCertificateFile(conf.Ssl(), "truststore_client.p12");
+
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();
 
@@ -51,6 +52,8 @@ namespace Infinispan.HotRod.Tests
             conf.AddServer().Host("127.0.0.1").Port(11222).ConnectionTimeout(90000).SocketTimeout(900);
             conf.Marshaller(new JBasicMarshaller());
             registerServerCAFile(conf.Ssl(), "keystore_server_sni2.pem", "sni2");
+            registerClientCertificateFile(conf.Ssl(), "truststore_client.p12");
+
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();
 
@@ -70,6 +73,7 @@ namespace Infinispan.HotRod.Tests
             conf.Marshaller(new JBasicMarshaller());
 
             registerServerCAFile(conf.Ssl(), "malicious.pem", "sni3-untrusted");
+            registerClientCertificateFile(conf.Ssl(), "truststore_client.p12");
 
             RemoteCacheManager remoteManager = new RemoteCacheManager(conf.Build(), true);
             IRemoteCache<string, string> testCache = remoteManager.GetCache<string, string>();

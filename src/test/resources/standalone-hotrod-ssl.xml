@@ -43,6 +43,11 @@
                 </server-identities>
             </security-realm>
             <security-realm name="RealmSNI1">
+                <authentication>
+                    <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
+                    <truststore path="truststore.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
+                    <properties path="application-users.properties" relative-to="jboss.server.config.dir"/>
+                </authentication>
                 <server-identities>
                     <ssl>
                         <keystore path="keystore_server_sni1.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
@@ -50,6 +55,11 @@
                 </server-identities>
             </security-realm>
             <security-realm name="RealmSNI2">
+                <authentication>
+                    <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
+                    <truststore path="truststore.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
+                    <properties path="application-users.properties" relative-to="jboss.server.config.dir"/>
+                </authentication>
                 <server-identities>
                     <ssl>
                         <keystore path="keystore_server_sni2.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
@@ -57,6 +67,11 @@
                 </server-identities>
             </security-realm>
             <security-realm name="RealmSNI3-untrusted">
+                <authentication>
+                    <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
+                    <truststore path="truststore.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
+                    <properties path="application-users.properties" relative-to="jboss.server.config.dir"/>
+                </authentication>
                 <server-identities>
                     <ssl>
                         <keystore path="keystore_server_sni3_untrusted.jks" relative-to="jboss.server.config.dir" keystore-password="secret"/>
@@ -171,7 +186,7 @@
                 <encryption security-realm="ApplicationRealm" require-ssl-client-auth="true">
                      <sni host-name="sni1" security-realm="RealmSNI1"/>
                      <sni host-name="sni2" security-realm="RealmSNI2"/>
-                     <sni host-name="sni3-unstrusted" security-realm="RealmSNI3-untrusted"/>
+                     <sni host-name="sni3-untrusted" security-realm="RealmSNI3-untrusted"/>
                 </encryption>
             </hotrod-connector>
         </subsystem>
