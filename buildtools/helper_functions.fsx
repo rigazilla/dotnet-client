@@ -281,9 +281,9 @@ let buildSwig () =
     else
         ExecProcess (fun p ->
             p.FileName <- "g++"
-            p.Arguments <- "-std=c++11 -I include/ hotrodcs_wrap.cxx -shared -fPIC -o hotrodcs_wrap.so"
+            p.Arguments <- "-std=c++11 -I include/ hotrodcs_wrap.cxx -shared -fPIC -o build/linux-shared/hotrodcs_wrap.so"
             p.WorkingDirectory <- "../swig") (TimeSpan.FromMinutes 5.0) |> ignore
         ExecProcess (fun p ->
             p.FileName <- "g++"
-            p.Arguments <- "-std=c++11 -I include/ hotrodcs_wrap.cxx -c"
+            p.Arguments <- "-std=c++11 -I include/ hotrodcs_wrap.cxx -c -o build/linux/hotrodcs_wrap.so"
             p.WorkingDirectory <- "../swig") (TimeSpan.FromMinutes 5.0) |> ignore
