@@ -105,7 +105,7 @@ let unzipFile file where =
 let unzipRpmFile file where folder =
     ExecProcess (fun p ->
         p.FileName <- "bash"
-        p.Arguments <- sprintf "-c \"rpm2cpio %s | cpio -idmv\"" file
+        p.Arguments <- sprintf "-c \" mkdir -p %s && cd %s && rpm2cpio ../%s | cpio -idmv ; cd -\"" folder folder file
         p.WorkingDirectory <- where) (TimeSpan.FromMinutes 5.0) |> ignore
     
 
@@ -306,6 +306,6 @@ let buildSwig () =
     else
         let cppResult = ExecProcess (fun p ->
             p.FileName <- "g++"
-            p.Arguments <- sprintf "hotrodcs_wrap.cxx -shared -DHR_PROTO_EXPORT=\"\" -fPIC -Iinclude -Inative_client/include -o native_client/lib/hotrod_wrap.so -Lnative_client/lib -Wl,-rpath,native_client/lib -lhotrod"
+            p.Arguments <- sprintf "hotrodcs_wrap.cxx  -std=c++11 -shared -DHR_PROTO_EXPORT=\"\" -fPIC -Iinclude -Inative_client/include -o native_client/lib/hotrod_wrap.so -Lnative_client/lib -Wl,-rpath,native_client/lib -lhotrod"
             p.WorkingDirectory <- "../swig") (TimeSpan.FromMinutes 5.0)
         if cppResult <> 0 then failwith "could not process swig files"
