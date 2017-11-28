@@ -104,16 +104,8 @@ let unzipFile file where =
 ///
 let unzipRpmFile file where folder =
     ExecProcess (fun p ->
-        p.FileName <- "rpm2archive"
-        p.Arguments <- file
-        p.WorkingDirectory <- where) (TimeSpan.FromMinutes 5.0) |> ignore
-    ExecProcess (fun p ->
-        p.FileName <- "mkdir"
-        p.Arguments <- folder
-        p.WorkingDirectory <- where) (TimeSpan.FromMinutes 5.0)  |> ignore
-    ExecProcess (fun p ->
-        p.FileName <- "tar"
-        p.Arguments <- sprintf "xvf %s.%s -C %s" file "tgz" folder
+        p.FileName <- "bash"
+        p.Arguments <- sprintf "-c \"rpm2cpio %s | cpio -idmv\"" file
         p.WorkingDirectory <- where) (TimeSpan.FromMinutes 5.0) |> ignore
     
 
