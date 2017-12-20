@@ -152,9 +152,9 @@ file (COPY "${CMAKE_CPP_HOME}/lib/" DESTINATION "${NATIVE_LIB_DIR}" PATTERN "*")
 file (COPY "${CMAKE_CPP_HOME}/include/" DESTINATION "${NATIVE_DIR}/include" PATTERN "*")
 
 hr_protobuf_generate_csharp(PROTO_SRCS  
-  src/resources/proto/infinispan/hotrod/protobuf/base_types.proto
-  src/resources/proto/org/infinispan/protostream/message-wrapping.proto
-  src/resources/proto/org/infinispan/query/remote/client/query.proto
+  src/resources/proto/base_types.proto
+  src/resources/proto/message-wrapping.proto
+  src/resources/proto/query.proto
 )
 
 hr_protobuf_generate_csharp(TEST_PROTO_SRCS  
