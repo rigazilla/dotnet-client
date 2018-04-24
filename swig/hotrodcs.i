@@ -38,6 +38,7 @@ namespace org { namespace infinispan { namespace query { namespace remote { name
 #include <infinispan/hotrod/RemoteCache.h>
 #include <infinispan/hotrod/RemoteCacheBase.h>
 #include <infinispan/hotrod/RemoteCacheManager.h>
+#include <infinispan/hotrod/RemoteCacheManagerAdmin.h>
 #include <infinispan/hotrod/ServerConfiguration.h>
 #include <infinispan/hotrod/ServerConfigurationBuilder.h>
 #include <infinispan/hotrod/SslConfiguration.h>
@@ -76,6 +77,7 @@ namespace org { namespace infinispan { namespace query { namespace remote { name
 
 %include "std_shared_ptr.i"
 %shared_ptr(infinispan::hotrod::ByteArray)
+%shared_ptr(infinispan::hotrod::RemoteCacheManagerAdmin)
 
 %feature("director") AuthenticationStringCallback;
 %feature("director") ClientListenerCallback;
@@ -189,6 +191,7 @@ static int getpath(void *context, const char ** path) {
 %include "infinispan/hotrod/RemoteCacheBase.h"
 %include "infinispan/hotrod/RemoteCache.h"
 %include "infinispan/hotrod/RemoteCacheManager.h"
+%include "infinispan/hotrod/RemoteCacheManagerAdmin.h"
 %include "swig/DotNetClientListener.h" 
 %include "arrays_csharp.i"
 %apply unsigned char INPUT[] {unsigned char* _bytes}
@@ -315,6 +318,7 @@ namespace hotrod {
 %template(SaslCallbackHandlerMap) std::map<int, AuthenticationStringCallback *>;
 %template(InetSocketAddressVector) std::vector<infinispan::hotrod::transport::InetSocketAddress>;
 %template(InetSocketAddressSet) std::set<infinispan::hotrod::transport::InetSocketAddress>;
+%template(AdminFlagSet) std::set<infinispan::hotrod::AdminFlag>;
 %extend infinispan::hotrod::RemoteCacheManager {
     %template(getByteArrayCache) getCache<infinispan::hotrod::ByteArray, infinispan::hotrod::ByteArray>;
 };
