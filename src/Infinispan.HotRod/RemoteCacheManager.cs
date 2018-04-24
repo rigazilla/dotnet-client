@@ -230,5 +230,14 @@ namespace Infinispan.HotRod
         {
             return manager.SwitchToDefaultCluster();
         }
+        /// <summary>
+        /// Return an instance of RemoteCacheManagerAdmin related to this remote cache manager
+        /// </summary>
+        /// <returns>an instance of RemoteCacheManagerAdmin</returns>
+        public RemoteCacheManagerAdmin administration()
+        {
+            return new RemoteCacheManagerAdmin(this, manager.administration());
+        }
+
     }
 }
