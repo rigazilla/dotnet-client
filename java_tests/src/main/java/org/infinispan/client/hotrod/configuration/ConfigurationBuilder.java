@@ -175,9 +175,8 @@ public class ConfigurationBuilder implements ConfigurationChildBuilder, Builder<
 
    @Override
    public ConfigurationBuilder marshaller(Marshaller marshaller) {
-      throw new UnsupportedOperationException();
-//      this.marshaller = marshaller;
-//      return this;
+      this.marshaller = marshaller;
+      return this;
    }
 
    @Override

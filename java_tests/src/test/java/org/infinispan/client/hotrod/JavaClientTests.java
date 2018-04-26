@@ -9,11 +9,6 @@ import java.util.TreeSet;
 
 import static org.testng.Assert.assertEquals;
 
-import org.infinispan.client.hotrod.BulkGetKeysDistTest;
-import org.infinispan.client.hotrod.BulkGetKeysReplTest;
-import org.infinispan.client.hotrod.BulkGetKeysSimpleTest;
-import org.infinispan.client.hotrod.BulkGetReplTest;
-import org.infinispan.client.hotrod.BulkGetSimpleTest;
 import org.infinispan.client.hotrod.CacheManagerStoppedTest;
 import org.infinispan.client.hotrod.CacheManagerNotStartedTest;
 import org.infinispan.client.hotrod.DefaultExpirationTest;
@@ -27,6 +22,7 @@ import org.infinispan.client.hotrod.ServerRestartTest;
 import org.infinispan.client.hotrod.ServerShutdownTest;
 import org.infinispan.client.hotrod.SizeTest;
 import org.infinispan.client.hotrod.SocketTimeoutErrorTest;
+import org.infinispan.client.hotrod.admin.RemoteCacheAdminTest;
 import org.testng.IMethodSelector;
 import org.testng.IMethodSelectorContext;
 import org.testng.ITestNGMethod;
@@ -40,7 +36,9 @@ public class JavaClientTests implements IMethodSelector {
 	private final static String [] passOverTestList = {
         "RemoteAsyncAPITest.testPutAllAsyncWithListener",
         "RemoteAsyncAPITest.testRemoveWithVersionAsyncWithListener",
-        "RemoteAsyncAPITest.testReplaceWithVersionAsyncWithListener"
+        "RemoteAsyncAPITest.testReplaceWithVersionAsyncWithListener",
+	"RemoteCacheAdminTest.cacheReindexTest",
+	"RemoteCacheAdminTest.alreadyExistingCacheTest"
 	};
 	
    private final static HashSet<String> passOverTestSet = new HashSet<String>(Arrays.asList(passOverTestList));
@@ -59,30 +57,7 @@ public class JavaClientTests implements IMethodSelector {
       }
 
       testng.setTestClasses(new Class[] {
-            CacheManagerNotStartedTest.class,
-            RemoteCacheManagerTest.class,
-            //Known to work
-            // Since 9.0.0.Final some tests use java unsafe
-            // which is not supported by IKVM
-            // commenting out
-            //Uses UNSAFE BulkGetKeysDistTest.class,
-            //Uses UNSAFE BulkGetKeysReplTest.class,
-            //Uses UNSAFE BulkGetKeysSimpleTest.class,
-            //Uses UNSAFE BulkGetReplTest.class,
-            //Uses UNSAFE BulkGetSimpleTest.class,
-            DefaultExpirationTest.class,
-            CacheManagerStoppedTest.class,
-            ForceReturnValuesTest.class,
-            HotRodIntegrationTest.class,
-            //Uses UNSAFE HotRodServerStartStopTest.class,
-            //Uses UNSAFE HotRodStatisticsTest.class,
-            RemoteCacheManagerTest.class,
-            ServerErrorTest.class,
-            ServerRestartTest.class,
-            ServerShutdownTest.class,
-            //Uses UNSAFE SizeTest.class,
-            SocketTimeoutErrorTest.class,
-            RemoteAsyncAPITest.class
+	    RemoteCacheAdminTest.class
       });
 
       testng.addListener(tr);
@@ -90,11 +65,7 @@ public class JavaClientTests implements IMethodSelector {
       testng.run();
 
       Set<String> expectedTestFailures = new TreeSet<String>(Arrays.asList( 
-            //see HRCPP-190
-            "RemoteCacheManagerTest.testMarshallerInstance",
-            //see HRCPP-189
-            "RemoteCacheManagerTest.testGetUndefinedCache",
- 	    "ForceReturnValuesTest.testSameInstanceForSameForceReturnValues"
+            "RemoteCacheManagerTest.testStartStopAsync"
       ));
       Set<String> expectedSkips = Collections.emptySet();
 

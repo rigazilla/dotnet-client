@@ -95,5 +95,9 @@ namespace Infinispan.HotRod.Wrappers
         public bool SwitchToDefaultCluster() {
             return manager.SwitchToDefaultCluster();
         }
+
+	public RemoteCacheManagerAdmin administration() {
+            return manager.administration();
+	}
     }
 }

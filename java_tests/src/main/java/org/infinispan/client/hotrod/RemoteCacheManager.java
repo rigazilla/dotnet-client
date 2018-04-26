@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.infinispan.client.hotrod.configuration.Configuration;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.infinispan.client.hotrod.RemoteCacheManagerAdmin;
 import org.infinispan.commons.marshall.Marshaller;
 // jni wrappers
 
@@ -134,5 +135,30 @@ public class RemoteCacheManager /* implements BasicCacheContainer */{
     
     public Properties getProperties() {
         throw new UnsupportedOperationException();
+    }
+
+    public RemoteCacheManagerAdmin administration() {
+        return new RemoteCacheManagerAdmin() {
+            cli.Infinispan.HotRod.RemoteCacheManagerAdmin admin = jniRemoteCacheManager.administration();
+            public <K, V> RemoteCache<K, V> createCache(String name, String template) {
+                System.out.println("calling: create cache");	
+		admin.CreateCache(name, template);
+                System.out.println("called: create cache");	
+                return RemoteCacheManager.this.getCache(name);
+            }
+
+            public <K, V> RemoteCache<K, V> getOrCreateCache(String name, String template) {
+                System.out.println("calling: getorcreate cache");	
+                admin.GetOrCreateCache(name, template);
+                System.out.println("called: getorcreate cache");	
+                return RemoteCacheManager.this.getCache(name);
+	    }
+            public void removeCache(String name) {
+                    admin.RemoveCache(name);
+	    }
+            public void reindexCache(String name) {
+                throw new RuntimeException();
+            }
+        };
     }
 }
