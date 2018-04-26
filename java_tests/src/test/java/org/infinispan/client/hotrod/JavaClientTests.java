@@ -37,8 +37,7 @@ public class JavaClientTests implements IMethodSelector {
         "RemoteAsyncAPITest.testPutAllAsyncWithListener",
         "RemoteAsyncAPITest.testRemoveWithVersionAsyncWithListener",
         "RemoteAsyncAPITest.testReplaceWithVersionAsyncWithListener",
-	"RemoteCacheAdminTest.cacheReindexTest",
-	"RemoteCacheAdminTest.alreadyExistingCacheTest"
+	"RemoteCacheAdminTest.cacheReindexTest"
 	};
 	
    private final static HashSet<String> passOverTestSet = new HashSet<String>(Arrays.asList(passOverTestList));
@@ -57,6 +56,30 @@ public class JavaClientTests implements IMethodSelector {
       }
 
       testng.setTestClasses(new Class[] {
+            CacheManagerNotStartedTest.class,
+            RemoteCacheManagerTest.class,
+            //Known to work
+            // Since 9.0.0.Final some tests use java unsafe
+            // which is not supported by IKVM
+            // commenting out
+            //Uses UNSAFE BulkGetKeysDistTest.class,
+            //Uses UNSAFE BulkGetKeysReplTest.class,
+            //Uses UNSAFE BulkGetKeysSimpleTest.class,
+            //Uses UNSAFE BulkGetReplTest.class,
+            //Uses UNSAFE BulkGetSimpleTest.class,
+            DefaultExpirationTest.class,
+            CacheManagerStoppedTest.class,
+            ForceReturnValuesTest.class,
+            HotRodIntegrationTest.class,
+            //Uses UNSAFE HotRodServerStartStopTest.class,
+            //Uses UNSAFE HotRodStatisticsTest.class,
+            RemoteCacheManagerTest.class,
+            ServerErrorTest.class,
+            ServerRestartTest.class,
+            ServerShutdownTest.class,
+            //Uses UNSAFE SizeTest.class,
+            SocketTimeoutErrorTest.class,
+            RemoteAsyncAPITest.class,
 	    RemoteCacheAdminTest.class
       });
 
